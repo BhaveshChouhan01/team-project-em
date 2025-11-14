@@ -3,6 +3,15 @@ import { connectDB } from "@/lib/mongo-db";
 import Conversation from "@/models/conversations";
 import { getUserFromToken } from "@/lib/getUserFromToken";
 
+function generateTitle(text: string) {
+  if (!text) return "New Conversation";
+
+  const cleaned = text.trim();
+  if (cleaned.length <= 30) return cleaned;
+
+  return cleaned.substring(0, 30) + "...";
+}
+
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
@@ -13,10 +22,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const title = body.title?.trim() || "New Conversation";
+     console.log("📥 Received body:", body);
+
+    // 👇 Use the FIRST MESSAGE to auto-generate title
+    const firstMessage = body.firstMessage || "";
+    const title = generateTitle(firstMessage);
 
     const convo = await Conversation.create({
-      user: user.id,              // 👈 ALWAYS attach correct user
+      user: user.id,
       title,
       lastMessageAt: new Date(),
     });
@@ -36,7 +49,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const list = await Conversation.find({ user: user.id })  // 👈 Filter by logged-in user ONLY
+    const list = await Conversation.find({ user: user.id })
       .sort({ updatedAt: -1 })
       .lean();
 
