@@ -1,25 +1,30 @@
 import mongoose from 'mongoose';
 
-const UserSchema = new mongoose.Schema({
-  fullName: {
-    type: String,
-    required: [true, 'Full name is required'],
+const UserSchema = new mongoose.Schema(
+  {
+    fullName: {
+      type: String,
+      required: [true, 'Full name is required'],
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
+    },
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+      minlength: 8,
+      select: false,  // ✅ security
+    },
   },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true,
-  },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: 8,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    timestamps: true, // ✅ creates createdAt + updatedAt automatically
+  }
+);
 
 export default mongoose.models.User || mongoose.model('User', UserSchema);
